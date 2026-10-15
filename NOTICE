@@ -1,0 +1,9 @@
+HamFLAC — third-party files
+===========================
+
+HamFLAC's own code is under the Artistic License 2.0; see LICENSE.
+
+third_party/dr_libs/dr_flac.h and dr_wav.h are David Reid's dr_libs
+(https://github.com/mackron/dr_libs), under a choice of public domain
+or MIT-0; see third_party/dr_libs/LICENSE. dr_flac is HamFLAC's reader;
+dr_wav is used only by the command-line tool and its test.

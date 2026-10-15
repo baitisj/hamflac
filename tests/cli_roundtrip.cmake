@@ -1,0 +1,30 @@
+# WAV -> hamflac encode -> hamflac decode -> the same WAV bytes; `hamflac
+# info` checks the MD5; `flac -t` and ffmpeg read the file when installed.
+# -DHAMFLAC=... -DMAKE_WAV=... -DWORK=... [-DFLAC=...] [-DFFMPEG=...]
+
+function(run)
+  execute_process(COMMAND ${ARGV} RESULT_VARIABLE r OUTPUT_VARIABLE o ERROR_VARIABLE e)
+  if(NOT r EQUAL 0)
+    message(FATAL_ERROR "failed (${r}): ${ARGV}\n${o}\n${e}")
+  endif()
+endfunction()
+
+file(REMOVE_RECURSE "${WORK}")
+file(MAKE_DIRECTORY "${WORK}")
+run("${MAKE_WAV}" "${WORK}/in.wav")
+run("${HAMFLAC}" encode "${WORK}/in.wav" "${WORK}/a.flac")
+run("${HAMFLAC}" decode "${WORK}/a.flac" "${WORK}/out.wav")
+run("${CMAKE_COMMAND}" -E compare_files "${WORK}/in.wav" "${WORK}/out.wav")
+run("${HAMFLAC}" info "${WORK}/a.flac")
+run("${HAMFLAC}" decode "${WORK}/a.flac" "${WORK}/part.wav" --from 50000 --count 1000)
+if(FLAC)
+  run("${FLAC}" -t -s "${WORK}/a.flac")
+  message(STATUS "flac -t: ok")
+endif()
+if(FFMPEG)
+  run("${FFMPEG}" -v error -i "${WORK}/a.flac" -f s16le -y "${WORK}/ff.raw")
+  run("${FFMPEG}" -v error -i "${WORK}/in.wav" -f s16le -y "${WORK}/in.raw")
+  run("${CMAKE_COMMAND}" -E compare_files "${WORK}/in.raw" "${WORK}/ff.raw")
+  message(STATUS "ffmpeg: ok")
+endif()
+file(REMOVE_RECURSE "${WORK}")
